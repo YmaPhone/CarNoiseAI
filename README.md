@@ -21,6 +21,8 @@ CarNoiseAI is an Android companion app for Bluetooth-connected driving profiles.
 
 ## Build
 
+Current app version: **1.0.1**. Pushing changes to `main` triggers the Android APK workflow.
+
 The GitHub Actions workflow builds a debug APK on pushes to main and uploads it as the CarNoiseAI-debug artifact.
 
 To build locally with Android SDK 35 and Gradle 8.9, run: gradle --no-daemon assembleDebug
