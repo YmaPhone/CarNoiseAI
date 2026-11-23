@@ -1,4 +1,4 @@
-package com.ymaphone.carnnoiseai
+package com.ymaphone.carnoiseai
 
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -39,10 +39,15 @@ object DrivingProfile {
         if (!prefs.getBoolean("profile_enabled", true)) return
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (!nm.isNotificationPolicyAccessGranted) return
+        if (!prefs.getBoolean("dnd_was_applied", false)) {
+            prefs.edit().putInt("previous_filter", nm.currentInterruptionFilter).putBoolean("dnd_was_applied", true).apply()
+        }
+        val categories = NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA or
+            (if (prefs.getBoolean("allow_alarms", true)) NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS else 0)
         val policy = NotificationManager.Policy(
-            if (prefs.getBoolean("allow_alarms", true)) NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS else 0,
-            0,
-            0,
+            categories,
+            NotificationManager.Policy.PRIORITY_SENDERS_NONE,
+            NotificationManager.Policy.PRIORITY_SENDERS_NONE,
             NotificationManager.Policy.SUPPRESSED_EFFECT_FULL_SCREEN_INTENT
         )
         nm.notificationPolicy = policy
@@ -53,6 +58,9 @@ object DrivingProfile {
         val prefs = context.getSharedPreferences("carnoise", Context.MODE_PRIVATE)
         if (!prefs.getBoolean("restore_dnd", true)) return
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (nm.isNotificationPolicyAccessGranted) nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+        if (nm.isNotificationPolicyAccessGranted && prefs.getBoolean("dnd_was_applied", false)) {
+            nm.setInterruptionFilter(prefs.getInt("previous_filter", NotificationManager.INTERRUPTION_FILTER_ALL))
+            prefs.edit().putBoolean("dnd_was_applied", false).apply()
+        }
     }
 }
