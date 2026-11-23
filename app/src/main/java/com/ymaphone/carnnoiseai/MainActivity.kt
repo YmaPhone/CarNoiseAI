@@ -89,16 +89,17 @@ fun CarNoiseApp() {
             Box(Modifier.weight(1f)) {
                 when(page) {
                     0 -> HomeScreen(fg, card, connected, vehicleName, profile, address != null,
-                        onProfile={ profile=it; prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context) } },
+                        onProfile={ profile=it; prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context, force = true) } },
                         onCars={page=1}, onSettings={page=3})
                     1 -> CarsScreen(fg, card, vehicleName, address, onRename={ vehicleName=it; prefs.edit().putString("vehicle_name",it).apply() }, onChoose={
                         vehicleName=it.first; address=it.second
                         prefs.edit().putString("vehicle_name",it.first).putString("vehicle_address",it.second).apply()
+                        if (connected) DrivingProfile.restore(context, force = true)
                         connected=false
                         page=0
                     })
                     2 -> ProfileScreen(fg, card, profile, allowCalls, allowMessages, allowMedia, allowAlarms, restore,
-                        onProfile={profile=it;prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context) }},
+                        onProfile={profile=it;prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context, force = true) }},
                         onCalls={allowCalls=it;prefs.edit().putBoolean("allow_calls",it).apply(); if(connected) DrivingProfile.apply(context)},
                         onMessages={allowMessages=it;prefs.edit().putBoolean("allow_messages",it).apply(); if(connected) DrivingProfile.apply(context)},
                         onMedia={allowMedia=it;prefs.edit().putBoolean("allow_media",it).apply(); if(connected) DrivingProfile.apply(context)},
