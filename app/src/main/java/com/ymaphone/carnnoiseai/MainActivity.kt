@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -64,7 +65,12 @@ fun CarNoiseApp() {
     var allowMedia by remember { mutableStateOf(prefs.getBoolean("allow_media", true)) }
     var restore by remember { mutableStateOf(prefs.getBoolean("restore_dnd", true)) }
     var dark by remember { mutableStateOf(prefs.getBoolean("dark_theme", true)) }
-    var showCars by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            connected = prefs.getBoolean("vehicle_connected", false)
+            delay(1000)
+        }
+    }
     val bg = if (dark) Navy else Color(0xFFF4F6FA)
     val fg = if (dark) Color.White else Ink
     val card = if (dark) Panel else Color.White
@@ -83,7 +89,7 @@ fun CarNoiseApp() {
             Box(Modifier.weight(1f)) {
                 when(page) {
                     0 -> HomeScreen(fg, card, connected, vehicleName, profile, address != null,
-                        onProfile={ profile=it; prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected && it) DrivingProfile.apply(context) },
+                        onProfile={ profile=it; prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context) } },
                         onCars={page=1}, onSettings={page=3})
                     1 -> CarsScreen(fg, card, vehicleName, address, onChoose={
                         vehicleName=it.first; address=it.second
