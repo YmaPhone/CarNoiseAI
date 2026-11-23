@@ -64,8 +64,8 @@ object DrivingProfile {
             (if (prefs.getBoolean("allow_alarms", true)) NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS else 0)
         val policy = NotificationManager.Policy(
             categories,
-            NotificationManager.Policy.PRIORITY_SENDERS_NONE,
-            NotificationManager.Policy.PRIORITY_SENDERS_NONE,
+            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
             NotificationManager.Policy.SUPPRESSED_EFFECT_FULL_SCREEN_INTENT
         )
         nm.notificationPolicy = policy
