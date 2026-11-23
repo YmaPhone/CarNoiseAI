@@ -91,7 +91,7 @@ fun CarNoiseApp() {
                     0 -> HomeScreen(fg, card, connected, vehicleName, profile, address != null,
                         onProfile={ profile=it; prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context) } },
                         onCars={page=1}, onSettings={page=3})
-                    1 -> CarsScreen(fg, card, vehicleName, address, onChoose={
+                    1 -> CarsScreen(fg, card, vehicleName, address, onRename={ vehicleName=it; prefs.edit().putString("vehicle_name",it).apply() }, onChoose={
                         vehicleName=it.first; address=it.second
                         prefs.edit().putString("vehicle_name",it.first).putString("vehicle_address",it.second).apply()
                         connected=false
@@ -179,8 +179,10 @@ private fun QuickCard(title:String, icon:androidx.compose.ui.graphics.vector.Ima
 }
 
 @Composable
-private fun CarsScreen(fg:Color, card:Color, name:String, address:String?, onChoose:(Pair<String,String>)->Unit) {
+private fun CarsScreen(fg:Color, card:Color, name:String, address:String?, onRename:(String)->Unit, onChoose:(Pair<String,String>)->Unit) {
     val context= LocalContext.current
+    var showRename by remember { mutableStateOf(false) }
+    var editedName by remember(name) { mutableStateOf(name) }
     var devices by remember { mutableStateOf(listOf<Pair<String,String>>()) }
     var error by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
@@ -201,7 +203,20 @@ private fun CarsScreen(fg:Color, card:Color, name:String, address:String?, onCho
                 Spacer(Modifier.height(8.dp))
                 Text(name,color=fg,fontWeight=FontWeight.Bold,fontSize=18.sp)
                 Text(if(address==null) "No vehicle selected" else "Selected Bluetooth device",color=Color.Gray,fontSize=12.sp)
+                if(address!=null) {
+                    Spacer(Modifier.height(10.dp))
+                    Text("Edit vehicle name",color=Color(0xFF6C9BFF),fontSize=12.sp,modifier=Modifier.clickable { editedName=name; showRename=true })
+                }
             }
+        }
+        if(showRename) {
+            AlertDialog(
+                onDismissRequest={showRename=false},
+                title={Text("Vehicle name")},
+                text={ OutlinedTextField(value=editedName,onValueChange={editedName=it},singleLine=true,label={Text("Name shown in CarNoiseAI")}) },
+                confirmButton={ TextButton(onClick={ if(editedName.isNotBlank()) onRename(editedName.trim()); showRename=false }) { Text("Save") } },
+                dismissButton={ TextButton(onClick={showRename=false}) { Text("Cancel") } }
+            )
         }
         Spacer(Modifier.height(18.dp))
         Text("Paired Bluetooth devices",color=fg,fontWeight=FontWeight.SemiBold)
