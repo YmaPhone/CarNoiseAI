@@ -92,11 +92,11 @@ fun CarNoiseApp() {
                         page=0
                     })
                     2 -> ProfileScreen(fg, card, profile, allowCalls, allowMessages, allowMedia, allowAlarms, restore,
-                        onProfile={profile=it;prefs.edit().putBoolean("profile_enabled",it).apply()},
-                        onCalls={allowCalls=it;prefs.edit().putBoolean("allow_calls",it).apply()},
-                        onMessages={allowMessages=it;prefs.edit().putBoolean("allow_messages",it).apply()},
-                        onMedia={allowMedia=it;prefs.edit().putBoolean("allow_media",it).apply()},
-                        onAlarms={allowAlarms=it;prefs.edit().putBoolean("allow_alarms",it).apply()},
+                        onProfile={profile=it;prefs.edit().putBoolean("profile_enabled",it).apply(); if(connected) { if(it) DrivingProfile.apply(context) else DrivingProfile.restore(context) }},
+                        onCalls={allowCalls=it;prefs.edit().putBoolean("allow_calls",it).apply(); if(connected) DrivingProfile.apply(context)},
+                        onMessages={allowMessages=it;prefs.edit().putBoolean("allow_messages",it).apply(); if(connected) DrivingProfile.apply(context)},
+                        onMedia={allowMedia=it;prefs.edit().putBoolean("allow_media",it).apply(); if(connected) DrivingProfile.apply(context)},
+                        onAlarms={allowAlarms=it;prefs.edit().putBoolean("allow_alarms",it).apply(); if(connected) DrivingProfile.apply(context)},
                         onRestore={restore=it;prefs.edit().putBoolean("restore_dnd",it).apply()},
                         onPermission={context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))})
                     else -> SettingsScreen(fg, card, dark, onDark={dark=it;prefs.edit().putBoolean("dark_theme",it).apply()},
