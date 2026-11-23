@@ -25,8 +25,6 @@ class VehicleBluetoothReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED -> {
-                // A Bluetooth connection may be restored before this app can observe it.
-                // Never leave a stale driving DND policy active after a reboot.
                 DrivingProfile.restore(context, force = true)
                 prefs.edit().putBoolean("vehicle_connected", false).apply()
             }
@@ -72,22 +70,26 @@ object DrivingProfile {
         if (!nm.isNotificationPolicyAccessGranted) return
 
         if (!prefs.getBoolean("dnd_was_applied", false)) {
-            val oldPolicy = nm.notificationPolicy
-            prefs.edit()
+            val previousPolicy = nm.notificationPolicy
+            val editor = prefs.edit()
                 .putInt("previous_filter", nm.currentInterruptionFilter)
-                .putInt("previous_categories", oldPolicy.priorityCategories)
-                .putInt("previous_call_senders", oldPolicy.priorityCallSenders)
-                .putInt("previous_message_senders", oldPolicy.priorityMessageSenders)
-                .putInt("previous_suppressed_effects", oldPolicy.suppressedVisualEffects)
+                .putInt("previous_categories", previousPolicy.priorityCategories)
+                .putInt("previous_call_senders", previousPolicy.priorityCallSenders)
+                .putInt("previous_message_senders", previousPolicy.priorityMessageSenders)
                 .putBoolean("dnd_was_applied", true)
-                .apply()
+
+            // suppressedVisualEffects was added in API 28.
+            if (Build.VERSION.SDK_INT >= 28) {
+                editor.putInt("previous_suppressed_effects", previousPolicy.suppressedVisualEffects)
+            }
+            editor.apply()
         }
 
         var categories =
             (if (prefs.getBoolean("allow_calls", false)) NotificationManager.Policy.PRIORITY_CATEGORY_CALLS else 0) or
             (if (prefs.getBoolean("allow_messages", false)) NotificationManager.Policy.PRIORITY_CATEGORY_MESSAGES else 0)
 
-        // Alarms and media became configurable DND categories in Android 9 (API 28).
+        // Alarms, media and the 4-argument Policy constructor are API 28+.
         if (Build.VERSION.SDK_INT >= 28) {
             if (prefs.getBoolean("allow_alarms", true)) {
                 categories = categories or NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS
@@ -97,12 +99,20 @@ object DrivingProfile {
             }
         }
 
-        val policy = NotificationManager.Policy(
-            categories,
-            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-            0
-        )
+        val policy = if (Build.VERSION.SDK_INT >= 28) {
+            NotificationManager.Policy(
+                categories,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                0
+            )
+        } else {
+            NotificationManager.Policy(
+                categories,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY
+            )
+        }
 
         nm.notificationPolicy = policy
         nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
@@ -125,12 +135,16 @@ object DrivingProfile {
             NotificationManager.Policy.PRIORITY_SENDERS_ANY
         )
 
-        nm.notificationPolicy = NotificationManager.Policy(
-            categories,
-            callSenders,
-            messageSenders,
-            prefs.getInt("previous_suppressed_effects", 0)
-        )
+        nm.notificationPolicy = if (Build.VERSION.SDK_INT >= 28) {
+            NotificationManager.Policy(
+                categories,
+                callSenders,
+                messageSenders,
+                prefs.getInt("previous_suppressed_effects", 0)
+            )
+        } else {
+            NotificationManager.Policy(categories, callSenders, messageSenders)
+        }
 
         nm.setInterruptionFilter(
             prefs.getInt("previous_filter", NotificationManager.INTERRUPTION_FILTER_ALL)
