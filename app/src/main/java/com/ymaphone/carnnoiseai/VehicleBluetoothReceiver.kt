@@ -73,43 +73,36 @@ object DrivingProfile {
 
         if (!prefs.getBoolean("dnd_was_applied", false)) {
             val oldPolicy = nm.notificationPolicy
-            val editor = prefs.edit()
+            prefs.edit()
                 .putInt("previous_filter", nm.currentInterruptionFilter)
                 .putInt("previous_categories", oldPolicy.priorityCategories)
                 .putInt("previous_call_senders", oldPolicy.priorityCallSenders)
                 .putInt("previous_message_senders", oldPolicy.priorityMessageSenders)
+                .putInt("previous_suppressed_effects", oldPolicy.suppressedVisualEffects)
                 .putBoolean("dnd_was_applied", true)
-
-            if (Build.VERSION.SDK_INT >= 28) {
-                editor.putInt("previous_suppressed_effects", oldPolicy.suppressedVisualEffects)
-            }
-            editor.apply()
+                .apply()
         }
 
         var categories =
             (if (prefs.getBoolean("allow_calls", false)) NotificationManager.Policy.PRIORITY_CATEGORY_CALLS else 0) or
-            (if (prefs.getBoolean("allow_messages", false)) NotificationManager.Policy.PRIORITY_CATEGORY_MESSAGES else 0) or
-            (if (prefs.getBoolean("allow_alarms", true)) NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS else 0)
+            (if (prefs.getBoolean("allow_messages", false)) NotificationManager.Policy.PRIORITY_CATEGORY_MESSAGES else 0)
 
-        // PRIORITY_CATEGORY_MEDIA and the four-argument Policy constructor are API 28+.
-        if (Build.VERSION.SDK_INT >= 28 && prefs.getBoolean("allow_media", true)) {
-            categories = categories or NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA
+        // Alarms and media became configurable DND categories in Android 9 (API 28).
+        if (Build.VERSION.SDK_INT >= 28) {
+            if (prefs.getBoolean("allow_alarms", true)) {
+                categories = categories or NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS
+            }
+            if (prefs.getBoolean("allow_media", true)) {
+                categories = categories or NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA
+            }
         }
 
-        val policy = if (Build.VERSION.SDK_INT >= 28) {
-            NotificationManager.Policy(
-                categories,
-                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                0
-            )
-        } else {
-            NotificationManager.Policy(
-                categories,
-                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                NotificationManager.Policy.PRIORITY_SENDERS_ANY
-            )
-        }
+        val policy = NotificationManager.Policy(
+            categories,
+            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+            NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+            0
+        )
 
         nm.notificationPolicy = policy
         nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
@@ -132,16 +125,12 @@ object DrivingProfile {
             NotificationManager.Policy.PRIORITY_SENDERS_ANY
         )
 
-        nm.notificationPolicy = if (Build.VERSION.SDK_INT >= 28) {
-            NotificationManager.Policy(
-                categories,
-                callSenders,
-                messageSenders,
-                prefs.getInt("previous_suppressed_effects", 0)
-            )
-        } else {
-            NotificationManager.Policy(categories, callSenders, messageSenders)
-        }
+        nm.notificationPolicy = NotificationManager.Policy(
+            categories,
+            callSenders,
+            messageSenders,
+            prefs.getInt("previous_suppressed_effects", 0)
+        )
 
         nm.setInterruptionFilter(
             prefs.getInt("previous_filter", NotificationManager.INTERRUPTION_FILTER_ALL)
