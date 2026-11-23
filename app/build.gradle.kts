@@ -4,7 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
-    namespace = "com.ymaphone.carnnoiseai"
+    namespace = "com.ymaphone.carnoiseai"
     compileSdk = 35
     defaultConfig {
         applicationId = "com.ymaphone.carnnoiseai"
