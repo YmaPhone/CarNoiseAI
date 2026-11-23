@@ -7,13 +7,20 @@ import android.content.Intent
 import android.app.NotificationManager
 import android.os.Build
 
+private fun Intent.vehicleDevice(): BluetoothDevice? {
+    return if (Build.VERSION.SDK_INT >= 33) getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+    else legacyBluetoothDevice()
+}
+
+@Suppress("DEPRECATION")
+private fun Intent.legacyBluetoothDevice(): BluetoothDevice? = getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+
 class VehicleBluetoothReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val prefs = context.getSharedPreferences("carnoise", Context.MODE_PRIVATE)
         when (intent.action) {
             BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                val device = if (Build.VERSION.SDK_INT >= 33) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                    else @Suppress("DEPRECATION") intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                val device = intent.vehicleDevice()
                 val address = try { device?.address } catch (_: SecurityException) { null }
                 if (address != null && address == prefs.getString("vehicle_address", null)) {
                     prefs.edit().putBoolean("vehicle_connected", true).apply()
