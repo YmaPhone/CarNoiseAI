@@ -279,7 +279,7 @@ private fun SettingsScreen(fg:Color,card:Color,dark:Boolean,onDark:(Boolean)->Un
         Surface(color=card,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth().clickable(onClick=onAuto)) {
             Row(Modifier.padding(17.dp),verticalAlignment=Alignment.CenterVertically) { Icon(Icons.Rounded.Android,null,tint=Color(0xFF5B8CFF)); Column(Modifier.weight(1f).padding(start=12.dp)) { Text("Android Auto",color=fg,fontWeight=FontWeight.SemiBold); Text("Open Android Auto app settings",color=Color.Gray,fontSize=12.sp) }; Icon(Icons.Rounded.ChevronRight,null,tint=Color.Gray) }
         }
-        Text("CarNoiseAI  •  Version 1.0.0",color=Color.Gray,fontSize=11.sp)
+        Text("CarNoiseAI  •  Version 1.0.1",color=Color.Gray,fontSize=11.sp)
     }
 }
 
