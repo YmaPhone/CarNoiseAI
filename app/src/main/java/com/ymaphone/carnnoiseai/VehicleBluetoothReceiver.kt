@@ -42,7 +42,10 @@ object DrivingProfile {
         if (!prefs.getBoolean("dnd_was_applied", false)) {
             prefs.edit().putInt("previous_filter", nm.currentInterruptionFilter).putBoolean("dnd_was_applied", true).apply()
         }
-        val categories = NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA or
+        val categories =
+            (if (prefs.getBoolean("allow_calls", false)) NotificationManager.Policy.PRIORITY_CATEGORY_CALLS else 0) or
+            (if (prefs.getBoolean("allow_messages", false)) NotificationManager.Policy.PRIORITY_CATEGORY_MESSAGES else 0) or
+            (if (prefs.getBoolean("allow_media", true)) NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA else 0) or
             (if (prefs.getBoolean("allow_alarms", true)) NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS else 0)
         val policy = NotificationManager.Policy(
             categories,
