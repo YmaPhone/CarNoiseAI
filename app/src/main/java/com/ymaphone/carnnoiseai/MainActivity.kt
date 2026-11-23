@@ -59,6 +59,9 @@ fun CarNoiseApp() {
     var vehicleName by remember { mutableStateOf(prefs.getString("vehicle_name", "My Car") ?: "My Car") }
     var address by remember { mutableStateOf(prefs.getString("vehicle_address", null)) }
     var allowAlarms by remember { mutableStateOf(prefs.getBoolean("allow_alarms", true)) }
+    var allowCalls by remember { mutableStateOf(prefs.getBoolean("allow_calls", false)) }
+    var allowMessages by remember { mutableStateOf(prefs.getBoolean("allow_messages", false)) }
+    var allowMedia by remember { mutableStateOf(prefs.getBoolean("allow_media", true)) }
     var restore by remember { mutableStateOf(prefs.getBoolean("restore_dnd", true)) }
     var dark by remember { mutableStateOf(prefs.getBoolean("dark_theme", true)) }
     var showCars by remember { mutableStateOf(false) }
@@ -88,8 +91,11 @@ fun CarNoiseApp() {
                         connected=false
                         page=0
                     })
-                    2 -> ProfileScreen(fg, card, profile, allowAlarms, restore,
+                    2 -> ProfileScreen(fg, card, profile, allowCalls, allowMessages, allowMedia, allowAlarms, restore,
                         onProfile={profile=it;prefs.edit().putBoolean("profile_enabled",it).apply()},
+                        onCalls={allowCalls=it;prefs.edit().putBoolean("allow_calls",it).apply()},
+                        onMessages={allowMessages=it;prefs.edit().putBoolean("allow_messages",it).apply()},
+                        onMedia={allowMedia=it;prefs.edit().putBoolean("allow_media",it).apply()},
                         onAlarms={allowAlarms=it;prefs.edit().putBoolean("allow_alarms",it).apply()},
                         onRestore={restore=it;prefs.edit().putBoolean("restore_dnd",it).apply()},
                         onPermission={context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))})
@@ -208,18 +214,21 @@ private fun CarsScreen(fg:Color, card:Color, name:String, address:String?, onCho
 }
 
 @Composable
-private fun ProfileScreen(fg:Color,card:Color,enabled:Boolean,alarms:Boolean,restore:Boolean,onProfile:(Boolean)->Unit,onAlarms:(Boolean)->Unit,onRestore:(Boolean)->Unit,onPermission:()->Unit) {
+private fun ProfileScreen(fg:Color,card:Color,enabled:Boolean,calls:Boolean,messages:Boolean,media:Boolean,alarms:Boolean,restore:Boolean,onProfile:(Boolean)->Unit,onCalls:(Boolean)->Unit,onMessages:(Boolean)->Unit,onMedia:(Boolean)->Unit,onAlarms:(Boolean)->Unit,onRestore:(Boolean)->Unit,onPermission:()->Unit) {
     Column(Modifier.fillMaxSize().padding(20.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         Text("Driving profile",color=fg,fontSize=25.sp,fontWeight=FontWeight.Bold)
         Text("Choose what happens automatically when your car connects.",color=Color.Gray,fontSize=13.sp)
         SettingRow("Automatic profile","Enable DND when the selected car connects",enabled,onProfile,fg,card)
+        SettingRow("Allow calls","Let incoming calls ring while driving",calls,onCalls,fg,card)
+        SettingRow("Allow messages","Allow message alerts while driving",messages,onMessages,fg,card)
+        SettingRow("Allow media","Keep music and media audio playing",media,onMedia,fg,card)
         SettingRow("Allow alarms","Alarm notifications can still sound",alarms,onAlarms,fg,card)
         SettingRow("Restore after disconnect","Turn off DND when the car disconnects",restore,onRestore,fg,card)
         Surface(color=card,shape=RoundedCornerShape(20.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Text("Sound behavior",color=fg,fontWeight=FontWeight.Bold)
                 Spacer(Modifier.height(6.dp))
-                Text("Calls and messages are silenced by the driving profile. Media audio remains available. Android may apply manufacturer-specific DND behavior.",color=Color.Gray,fontSize=12.sp)
+                Text("Default setup: calls and messages are silenced, while music and media audio remain available. Change each rule above. Android and the phone manufacturer may apply additional DND behavior.",color=Color.Gray,fontSize=12.sp)
                 Spacer(Modifier.height(12.dp))
                 Button(onClick=onPermission,modifier=Modifier.fillMaxWidth()) { Text("Grant Do Not Disturb access") }
             }
