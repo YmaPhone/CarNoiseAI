@@ -47,7 +47,15 @@ object DrivingProfile {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (!nm.isNotificationPolicyAccessGranted) return
         if (!prefs.getBoolean("dnd_was_applied", false)) {
-            prefs.edit().putInt("previous_filter", nm.currentInterruptionFilter).putBoolean("dnd_was_applied", true).apply()
+            val oldPolicy = nm.notificationPolicy
+            prefs.edit()
+                .putInt("previous_filter", nm.currentInterruptionFilter)
+                .putInt("previous_categories", oldPolicy.priorityCategories)
+                .putInt("previous_call_senders", oldPolicy.priorityCallSenders)
+                .putInt("previous_message_senders", oldPolicy.priorityMessageSenders)
+                .putInt("previous_suppressed_effects", oldPolicy.suppressedVisualEffects)
+                .putBoolean("dnd_was_applied", true)
+                .apply()
         }
         val categories =
             (if (prefs.getBoolean("allow_calls", false)) NotificationManager.Policy.PRIORITY_CATEGORY_CALLS else 0) or
@@ -69,6 +77,12 @@ object DrivingProfile {
         if (!prefs.getBoolean("restore_dnd", true)) return
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (nm.isNotificationPolicyAccessGranted && prefs.getBoolean("dnd_was_applied", false)) {
+            nm.notificationPolicy = NotificationManager.Policy(
+                prefs.getInt("previous_categories", 0),
+                prefs.getInt("previous_call_senders", NotificationManager.Policy.PRIORITY_SENDERS_ANY),
+                prefs.getInt("previous_message_senders", NotificationManager.Policy.PRIORITY_SENDERS_ANY),
+                prefs.getInt("previous_suppressed_effects", 0)
+            )
             nm.setInterruptionFilter(prefs.getInt("previous_filter", NotificationManager.INTERRUPTION_FILTER_ALL))
             prefs.edit().putBoolean("dnd_was_applied", false).apply()
         }
