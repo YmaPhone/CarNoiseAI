@@ -1,30 +1,36 @@
-# CarNoiseAI
+# CarMute
 
-CarNoiseAI is an Android companion app for Bluetooth-connected driving profiles.
+**CarMute** היא אפליקציית Android לניהול פרופיל הנהיגה והשקט בטלפון בזמן חיבור Bluetooth לרכב.
 
-## Current features
+## מה האפליקציה מאפשרת?
 
-- Select a paired Bluetooth device as the vehicle.
-- Detect connect/disconnect broadcasts for the selected device.
-- Automatically activate Android Do Not Disturb while the selected vehicle is connected.
-- Configure whether calls, messages, media audio and alarms are allowed.
-- Restore the phone's previous interruption filter after disconnecting (optional).
-- Open Android Auto's app settings from the app.
-- Dark midnight-blue interface with Home, Cars, Profile and Settings sections.
+- בחירת הרכב מתוך מכשירי ה‑Bluetooth המצומדים לטלפון.
+- זיהוי התחברות וניתוק של הרכב שנבחר.
+- הפעלה אוטומטית של מצב „נא לא להפריע” בעת התחברות לרכב.
+- בחירה אם לאפשר שיחות, התראות הודעות, מוזיקה ושעונים מעוררים.
+- שחזור הגדרות הצליל שהיו בטלפון לפני החיבור, לפי בחירת המשתמש.
+- פתיחת הגדרות Android Auto והגדרות ההרשאות של Android.
+- ממשק בעברית, תמיכה בכיוון כתיבה מימין לשמאל, מצב כהה ובהיר ומעברים מונפשים ועדינים.
 
-## Permissions and Android behavior
+## הרשאות והתנהגות Android
 
-- Android 12+: Nearby devices / Bluetooth permission is required to read paired device names and addresses.
-- The user must grant Notification Policy / Do Not Disturb access in Android settings before automatic DND can work.
-- Android Auto does not expose a public API for third-party apps to edit its internal settings. This app provides a shortcut to its Android settings page.
-- DND behavior can vary by Android version and device manufacturer. The app configures Android's priority policy to silence calls and messages by default while allowing media and alarms.
+- ב‑Android 12 ומעלה נדרשת הרשאת „מכשירים בקרבת מקום” כדי לקרוא את שמות מכשירי ה‑Bluetooth והכתובות שלהם.
+- כדי שהאפליקציה תוכל להפעיל ולכבות מצב „נא לא להפריע”, יש לאשר לה גישה מיוחדת בהגדרות Android.
+- ל‑Android Auto אין ממשק API ציבורי שמאפשר לאפליקציות חיצוניות לערוך את ההגדרות הפנימיות שלו. CarMute מספקת קיצור דרך להגדרות Android Auto.
+- התנהגות „נא לא להפריע” עשויה להשתנות בין גרסאות Android ויצרניות טלפונים.
 
-## Build
+## בנייה
 
-Current app version: **1.0.1**. Pushing changes to `main` triggers the Android APK workflow.
+גרסה נוכחית: **1.0.2**.
 
-The GitHub Actions workflow builds a debug APK on pushes to main and uploads it as the CarNoiseAI-debug artifact.
+ה‑GitHub Actions בונה APK בכל עדכון לענף `main`, בודק שקובץ ההתקנה נוצר ומעלה אותו כ‑Artifact.
 
-To build locally with Android SDK 35 and Gradle 8.9, run: gradle --no-daemon assembleDebug
+לבנייה מקומית עם Android SDK 35 ו‑Gradle 8.9:
 
-APK output: app/build/outputs/apk/debug/app-debug.apk
+```bash
+gradle --no-daemon clean assembleDebug
+```
+
+קובץ ההתקנה שנוצר:
+
+`app/build/outputs/apk/debug/app-debug.apk`
